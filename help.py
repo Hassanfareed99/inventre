@@ -42,7 +42,7 @@ class  Inventory:
 
     def home_menu():
         
-        select=['Home','Purchasing','Repair','Sale']
+        select=['Data_Entry','Monitoring',]
 
         return select
     
@@ -92,19 +92,58 @@ class  Inventory:
 
 
 
-    def sale_submit(self,val1,val2,val3,val4):
-        self.cursor.execute("INSERT INTO Sale (Date,IMEI,Plateform,Sale_price) VALUES(?,?,?,?)",(val1,val2, val3, val4,))
+    def sale_submit(self,val1,val2,val3,val4,val5,):
+        self.cursor.execute("INSERT INTO Sale (Date,IMEI,Plateform,Sale_price,Delivery) VALUES(?,?,?,?,?)",(val1,val2, val3, val4,val5))
         self.db.commit()
         return 'Done'
 
-        
-        
     
 
 
+# ----------------Servises ------------------
+
+    def services_submit(self,val1,val2,val3,):
+        self.cursor.execute("INSERT INTO Service (Date,Dec,Price) VALUES(?,?,?)",(val1, val2, val3))
+        self.db.commit()
+        return 'Done'
+    
+        
+    
+
+# ----------------------Home ---------------------- ----------------
 
 
-     
+# iteam In Repair Mode
+
+
+    def available_items(self,val1):
+        data_base=self.db
+        data=pd.read_sql_query("SELECT * FROM Sale ",con=data_base)
+        data_b=data[data['IMEI'] ==val1]
+
+        return data_b
+
+
+
+
+
+# -------------Morniting--------------------------------
+
+
+    def morniting(self):
+
+        data_base=self.db
+        df_mobile=pd.read_sql_query("select * from Mobile",con=data_base)
+        df_repairs=pd.read_sql_query("select * from Repair",con=data_base)
+        df_sales=pd.read_sql_query("select * from Sale",con=data_base)
+        df_mr=df_mobile.merge(df_repairs,left_on='IMS',right_on='IMEI')
+        df_m_r_s=df_mr.merge(df_sales,left_on='IMEI',right_on='IMEI')
+        df_m_r_s['Profit'] =df_m_r_s['Sale_price']-(df_m_r_s['Pur_Price'] +df_m_r_s['Repair_Price']) 
+        return df_m_r_s['Sale_price'].sum(), (df_m_r_s['Profit'] - (df_m_r_s['Delivery']+ df_m_r_s['Pur_Price'])).sum(),(df_m_r_s['Sale_price'].sum() - df_m_r_s['Profit'].sum()),df_m_r_s['Delivery'].sum(),
+
+
+
+
 
 
 
